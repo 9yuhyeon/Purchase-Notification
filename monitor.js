@@ -82,7 +82,7 @@ async function processAccount(browser, account, seen) {
     await page.locator('input[type="password"]').press('Enter');
 
     // 로그인 완료 대기
-    await page.waitForURL(url => !url.includes('/member/login'), { timeout: 20000 });
+    await page.waitForURL(url => !url.href.includes('/member/login'), { timeout: 20000 });
 
     console.log(`로그인 성공: ${label}`);
   } catch (e) {
