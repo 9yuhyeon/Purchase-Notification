@@ -128,6 +128,9 @@ function parseOrders(html) {
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/g, ' ')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ');
 
   const parts = text.split(/(C[MP][A-Z0-9]{16,20})/);
@@ -155,7 +158,9 @@ function parseOrders(html) {
     const gameDate = gameDateMatch?.[1]?.replace(/\s+/, ' ') || '';
 
     // 홈팀 축약명 + 경기장 (빵부스러기: 야구 - TEAM_FULL > TEAM_ABBR - VENUE)
-    const venueMatch = chunk.match(/야구\s*-\s*.+?>\s*(.+?)\s*-\s*(.+?)(?=\s*경기\s*일시)/i);
+    const breadcrumbDebug = chunk.match(/야구.{0,80}/i);
+    if (breadcrumbDebug) console.log('breadcrumb snippet:', breadcrumbDebug[0]);
+    const venueMatch = chunk.match(/야구\s*-\s*.+?(?:[>›»])\s*(.+?)\s*-\s*(.+?)(?=\s*경기\s*일시)/i);
     const homeTeam = venueMatch?.[1]?.trim() || '';
     const venue = venueMatch?.[2]?.trim() || '';
 
