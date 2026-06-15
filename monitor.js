@@ -77,14 +77,12 @@ async function processAccount(browser, account, seen) {
 
     if (!idFilled) throw new Error('ID 입력 필드를 찾지 못했습니다');
 
-    // PW 입력
+    // PW 입력 후 Enter로 제출
     await page.fill('input[type="password"]', account.pw);
-
-    // 로그인 버튼 클릭
-    await page.click('button[type="submit"], button:has-text("로그인"), .btn-login');
+    await page.locator('input[type="password"]').press('Enter');
 
     // 로그인 완료 대기
-    await page.waitForURL(url => !url.includes('/member/login'), { timeout: 15000 });
+    await page.waitForURL(url => !url.includes('/member/login'), { timeout: 20000 });
 
     console.log(`로그인 성공: ${label}`);
   } catch (e) {
