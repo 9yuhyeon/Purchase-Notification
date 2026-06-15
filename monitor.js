@@ -50,7 +50,7 @@ async function processAccount(browser, account, seen) {
     });
 
     // 비밀번호 필드가 보일 때까지 대기 (폼 로드 확인)
-    await page.waitForSelector('input[type="password"]', { state: 'visible', timeout: 15000 });
+    await page.waitForSelector('input[type="password"]', { state: 'visible', timeout: 30000 });
 
     // ID 입력 — 숨김 필드 제외하고 순서대로 시도
     const idSelectors = [
