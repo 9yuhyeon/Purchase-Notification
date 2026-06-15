@@ -45,12 +45,39 @@ async function processAccount(browser, account, seen) {
   try {
     // 로그인 페이지 이동
     await page.goto('https://www.ticketbay.co.kr/member/login', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
 
-    // ID / PW 입력
-    await page.fill('input[type="email"], input[name*="id" i], input[id*="id" i], input[placeholder*="이메일" i], input[placeholder*="아이디" i]', account.id);
+    // 비밀번호 필드가 보일 때까지 대기 (폼 로드 확인)
+    await page.waitForSelector('input[type="password"]', { state: 'visible', timeout: 15000 });
+
+    // ID 입력 — 숨김 필드 제외하고 순서대로 시도
+    const idSelectors = [
+      'input[name="memberId"]',
+      'input[name="userId"]',
+      'input[name="loginId"]',
+      'input[name="id"]',
+      'input[type="email"]',
+      'input[placeholder*="이메일"]',
+      'input[placeholder*="아이디"]',
+    ];
+
+    let idFilled = false;
+    for (const sel of idSelectors) {
+      try {
+        const el = page.locator(sel).first();
+        await el.waitFor({ state: 'visible', timeout: 3000 });
+        await el.fill(account.id);
+        idFilled = true;
+        console.log(`ID 입력 성공 (selector: ${sel})`);
+        break;
+      } catch {}
+    }
+
+    if (!idFilled) throw new Error('ID 입력 필드를 찾지 못했습니다');
+
+    // PW 입력
     await page.fill('input[type="password"]', account.pw);
 
     // 로그인 버튼 클릭
@@ -70,7 +97,7 @@ async function processAccount(browser, account, seen) {
   try {
     // 판매이력 1페이지 조회
     await page.goto('https://www.ticketbay.co.kr/mypage/sell/history/1', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
 
