@@ -157,11 +157,9 @@ function parseOrders(html) {
     const gameDateMatch = chunk.match(/경기 일시\s*(\d{4}\.\d{2}\.\d{2}\s*\d{2}:\d{2})/);
     const gameDate = gameDateMatch?.[1]?.replace(/\s+/, ' ') || '';
 
-    // 홈팀 축약명 + 경기장 (빵부스러기: 야구 - TEAM_FULL > TEAM_ABBR - VENUE)
-    const breadcrumbDebug = chunk.match(/야구.{0,80}/i);
-    if (breadcrumbDebug) console.log('breadcrumb snippet:', breadcrumbDebug[0]);
-    const venueMatch = chunk.match(/야구\s*-\s*.+?(?:[>›»])\s*(.+?)\s*-\s*(.+?)(?=\s*경기\s*일시)/i);
-    const homeTeam = venueMatch?.[1]?.trim() || '';
+    // 홈팀 축약명 + 경기장 (야구 - TEAM_FULL TEAM_ABBR - VENUE 경기 일시)
+    const venueMatch = chunk.match(/야구\s*-\s*(.+?)\s*-\s*(.+?)(?=\s*경기\s*일시)/i);
+    const homeTeam = venueMatch ? venueMatch[1].trim().split(/\s+/).pop() : '';
     const venue = venueMatch?.[2]?.trim() || '';
 
     const priceChunk = chunk.slice(0, statusIndex);
