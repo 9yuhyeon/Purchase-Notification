@@ -1,8 +1,6 @@
 name: TicketBay Monitor
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
