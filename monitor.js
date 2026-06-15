@@ -87,6 +87,8 @@ async function processAccount(browser, account, seen) {
     console.log(`로그인 성공: ${label}`);
   } catch (e) {
     console.error(`로그인 실패: ${label} — ${e.message}`);
+    await page.screenshot({ path: `screenshot-${account.id}.png`, fullPage: true });
+    console.log(`스크린샷 저장: screenshot-${account.id}.png`);
     await sendTelegram(`❌ TicketBay 로그인 실패\n계정: ${label}`);
     await context.close();
     return;
