@@ -207,7 +207,11 @@ function formatMessage(label, order) {
     `📅 주문일　: ${order.orderDate}`,
   ];
   if (order.gameDate) lines.push(`🏟️ 경기일시: ${order.gameDate}`);
-  if (order.gameInfo) lines.push(`⚾ 경기정보: ${order.gameInfo}`);
+  if (order.gameInfo) {
+    const [mainInfo, seatInfo] = order.gameInfo.split(' 👉 ');
+    lines.push(`⚾ 경기정보: ${mainInfo}`);
+    if (seatInfo) lines.push(`      👉 ${seatInfo}`);
+  }
   if (order.venue)    lines.push(`📍 경기장　: ${order.venue}`);
   if (order.totalPrice) {
     const price = order.unitPrice
