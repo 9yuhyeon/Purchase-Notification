@@ -193,8 +193,12 @@ function sendTelegram(text) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
     }, (res) => {
-      res.on('data', () => {});
-      res.on('end', resolve);
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        console.log(`Telegram 응답 [${res.statusCode}]:`, data);
+        resolve();
+      });
     });
     req.on('error', (e) => { console.error('Telegram 오류:', e.message); resolve(); });
     req.write(body);
