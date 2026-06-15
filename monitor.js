@@ -155,12 +155,22 @@ function parseOrders(html) {
     const gameDate = gameDateMatch?.[1]?.replace(/\s+/, ' ') || '';
 
     const priceChunk = chunk.slice(0, statusIndex);
+
+    // 총 결제금액
     const priceMatches = [...priceChunk.matchAll(/([\d,]+)원/g)];
     const totalPrice = priceMatches.length > 0
       ? priceMatches[priceMatches.length - 1][1] + '원'
       : '';
 
-    orders.push({ orderNo, status, orderDate, gameDate, totalPrice });
+    // 단가 × 수량 (예: 65,000원 × 4장)
+    const unitMatch = priceChunk.match(/([\d,]+)원\s*[×x]\s*(\d+)장/);
+    const unitPrice = unitMatch ? `${unitMatch[1]}원 × ${unitMatch[2]}장` : '';
+
+    // 경기 정보 (vs ~ PIN/무통장 사이)
+    const vsMatch = chunk.match(/vs\s+(.+?)(?=\s*(?:PIN|무통장|ATM|계좌))/i);
+    const gameInfo = vsMatch ? vsMatch[1].trim().replace(/\s+/g, ' ') : '';
+
+    orders.push({ orderNo, status, orderDate, gameDate, gameInfo, totalPrice, unitPrice });
   }
 
   return orders;
@@ -179,7 +189,13 @@ function formatMessage(label, order) {
     `📅 주문일: ${order.orderDate}`,
   ];
   if (order.gameDate) lines.push(`🏟️  경기일시: ${order.gameDate}`);
-  if (order.totalPrice) lines.push(`💰 결제금액: ${order.totalPrice}`);
+  if (order.gameInfo) lines.push(`⚾ 경기정보: ${order.gameInfo}`);
+  if (order.totalPrice) {
+    const price = order.unitPrice
+      ? `${order.totalPrice} (${order.unitPrice})`
+      : order.totalPrice;
+    lines.push(`💰 결제금액: ${price}`);
+  }
   lines.push('', `⏰ 감지시각: ${now}`);
   return lines.join('\n');
 }
