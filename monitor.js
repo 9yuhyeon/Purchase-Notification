@@ -154,6 +154,11 @@ function parseOrders(html) {
     const gameDateMatch = chunk.match(/경기 일시\s*(\d{4}\.\d{2}\.\d{2}\s*\d{2}:\d{2})/);
     const gameDate = gameDateMatch?.[1]?.replace(/\s+/, ' ') || '';
 
+    // 홈팀 축약명 + 경기장 (빵부스러기: 야구 - TEAM_FULL > TEAM_ABBR - VENUE)
+    const venueMatch = chunk.match(/야구\s*-\s*.+?>\s*(.+?)\s*-\s*(.+?)(?=\s*경기\s*일시)/i);
+    const homeTeam = venueMatch?.[1]?.trim() || '';
+    const venue = venueMatch?.[2]?.trim() || '';
+
     const priceChunk = chunk.slice(0, statusIndex);
 
     // 총 결제금액
@@ -168,9 +173,19 @@ function parseOrders(html) {
 
     // 경기 정보 (vs ~ PIN/무통장 사이)
     const vsMatch = chunk.match(/vs\s+(.+?)(?=\s*(?:PIN|무통장|ATM|계좌))/i);
-    const gameInfo = vsMatch ? vsMatch[1].trim().replace(/\s+/g, ' ') : '';
+    let gameInfo = vsMatch ? vsMatch[1].trim().replace(/\s+/g, ' ') : '';
 
-    orders.push({ orderNo, status, orderDate, gameDate, gameInfo, totalPrice, unitPrice });
+    // 구조화: AWAY | N구역 | N열 👉 나머지
+    const structMatch = gameInfo.match(/^(.+?)\s+(\d+[가-힣A-Za-z]*구역)\s+(\d+열)\s*(.*)$/);
+    if (structMatch) {
+      const [, away, section, row, seatInfo] = structMatch;
+      gameInfo = seatInfo
+        ? `${away} | ${section} | ${row} 👉 ${seatInfo}`
+        : `${away} | ${section} | ${row}`;
+    }
+    if (homeTeam) gameInfo = `${homeTeam}(홈) vs ${gameInfo}`;
+
+    orders.push({ orderNo, status, orderDate, gameDate, gameInfo, venue, totalPrice, unitPrice });
   }
 
   return orders;
@@ -185,11 +200,12 @@ function formatMessage(label, order) {
     '🎫 TicketBay 결제완료 알림',
     '',
     `📋 주문번호: ${order.orderNo}`,
-    `👤 계정: ${label}`,
-    `📅 주문일: ${order.orderDate}`,
+    `👤 계정　　: ${label}`,
+    `📅 주문일　: ${order.orderDate}`,
   ];
-  if (order.gameDate) lines.push(`🏟️  경기일시: ${order.gameDate}`);
+  if (order.gameDate) lines.push(`🏟️ 경기일시: ${order.gameDate}`);
   if (order.gameInfo) lines.push(`⚾ 경기정보: ${order.gameInfo}`);
+  if (order.venue)    lines.push(`📍 경기장　: ${order.venue}`);
   if (order.totalPrice) {
     const price = order.unitPrice
       ? `${order.totalPrice} (${order.unitPrice})`
